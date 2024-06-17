@@ -1,0 +1,53 @@
+import requests
+import xml.etree.ElementTree as ET
+
+
+url = 'https://www.sec.gov/Archives/edgar/data/2013737/000201373724000005/informationtablerestated.xml'
+
+# User Agent
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+
+# Fetching Content
+response = requests.get(url, headers=headers)
+response.encoding = 'utf-8'  # Ensure correct encoding
+xml_data = response.text
+
+# Parsing
+try:
+    root = ET.fromstring(xml_data)
+except ET.ParseError as e:
+    print(f'Error parsing XML: {e}')
+    exit()
+
+# Define the namespace
+ns = {'ns2': 'http://www.sec.gov/edgar/document/thirteenf/informationtable'}
+
+# Extract information
+for info_table in root.findall('ns2:infoTable', ns):
+    name_of_issuer = info_table.find('ns2:nameOfIssuer', ns).text
+    title_of_class = info_table.find('ns2:titleOfClass', ns).text
+    cusip = info_table.find('ns2:cusip', ns).text
+    figi = info_table.find('ns2:figi', ns).text
+    value = info_table.find('ns2:value', ns).text
+    ssh_prnamt = info_table.find('ns2:shrsOrPrnAmt/ns2:sshPrnamt', ns).text
+    ssh_prnamt_type = info_table.find('ns2:shrsOrPrnAmt/ns2:sshPrnamtType', ns).text
+    investment_discretion = info_table.find('ns2:investmentDiscretion', ns).text
+    voting_authority_sole = info_table.find('ns2:votingAuthority/ns2:Sole', ns).text
+    voting_authority_shared = info_table.find('ns2:votingAuthority/ns2:Shared', ns).text
+    voting_authority_none = info_table.find('ns2:votingAuthority/ns2:None', ns).text
+
+    # Print information
+    print(f'Name of Issuer: {name_of_issuer}')
+    print(f'Title of Class: {title_of_class}')
+    print(f'CUSIP: {cusip}')
+    print(f'FIGI: {figi}')
+    print(f'Value: {value}')
+    print(f'Shares or Principal Amount: {ssh_prnamt}')
+    print(f'Shares or Principal Amount Type: {ssh_prnamt_type}')
+    print(f'Investment Discretion: {investment_discretion}')
+    print(f'Voting Authority - Sole: {voting_authority_sole}')
+    print(f'Voting Authority - Shared: {voting_authority_shared}')
+    print(f'Voting Authority - None: {voting_authority_none}')
+    print('-' * 40)
