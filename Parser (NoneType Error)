@@ -1,0 +1,47 @@
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
+ 
+# URL for SEC Edgar with form type 13-F
+url = "https://www.sec.gov/cgi-bin/browse-edgar"
+params = {
+    "company": "",
+    "CIK": "",
+    "type": "13F",
+    "owner": "exclude",
+    "count": "100",
+    "action": "getcurrent"
+}
+ 
+# Fetch the webpage content
+response = requests.get(url, params=params)
+web_content = response.content
+ 
+# Parse the HTML content
+soup = BeautifulSoup(web_content, 'html.parser')
+table = soup.find('table', class_='tableFile2')
+rows = table.find_all('tr')
+ 
+# Get today's date
+today = datetime.today().strftime('%Y-%m-%d')
+matching_rows = []
+ 
+# Filter rows based on the "Accepted" date matching today's date
+for row in rows[1:]:  # Skip header row
+    cols = row.find_all('td')
+    accepted_date = cols[3].text.strip()
+    if accepted_date == today:
+        matching_rows.append(cols)
+ 
+# Extract and read HTML file links for the matching rows
+for cols in matching_rows:
+    html_link = cols[1].find('a')['href']  # Assuming the link is in the second column
+html_url = f"https://www.sec.gov{html_link}"
+    
+    # Fetch the HTML file
+    html_response = requests.get(html_url)
+    html_content = html_response.content
+    
+    # Process the HTML file content as needed
+    html_soup = BeautifulSoup(html_content, 'html.parser')
+    # Further processing of the HTML content...
